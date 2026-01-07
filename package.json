@@ -1,0 +1,26 @@
+{
+  "name": "anim-util",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/EpicPuppy613/anim-util#readme",
+  "bugs": {
+    "url": "https://github.com/EpicPuppy613/anim-util/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EpicPuppy613/anim-util.git"
+  },
+  "license": "MIT",
+  "author": "EpicPuppy613",
+  "type": "module",
+  "main": "run/index.js",
+  "scripts": {
+    "test": "node run/index.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "canvas": "^3.2.0"
+  }
+}
