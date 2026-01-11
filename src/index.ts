@@ -20,7 +20,8 @@ program
     .option("-h, --height <pixels>", "Override the animation height")
     .option("-r, --framerate <fps>", "Override the animation framerate")
     .option("-n, --frames <count>", "Override the length of animation in frames")
-    .option("-a, --audio <file>", "File to use for audio input");
+    .option("-a, --audio <file>", "File to use for audio input")
+    .option("--audio-offset <duration>", "Start position in audio file to start");
 
 program.parse();
 
@@ -61,7 +62,7 @@ if (options.frames && isFinite(parseInt(options.frames))) animOptions.frames = p
 
 const context = new RenderContext(animOptions);
 
-animation.init();
+animation.init(context);
 
 console.log(ch.blueBright.bold(`Using animation '${animation.name}'`));
 console.log(`  ${animOptions.width}x${animOptions.height}, Frames: ${animOptions.frames}@${animOptions.framerate}fps, ${(animOptions.frames / animOptions.framerate).toFixed(2)}s`);
@@ -80,6 +81,9 @@ if (program.args[0] == "frame") {
     const args = [];
     args.push("-framerate", animOptions.framerate.toString(), "-f", "image2pipe", "-i", "-");
     if (options.audio) {
+        if (options.audioOffset) {
+            args.push("-ss", options.audioOffset);
+        }
         args.push("-i", options.audio, "-c:a", "copy");
     }
     args.push("-shortest", "output.mp4");
@@ -99,7 +103,6 @@ if (program.args[0] == "frame") {
     for (let i = parseInt(options.frame); i < animOptions.frames; i++) {
         context.frame(i);
         animation.render(context);
-        context.canvas.toBuffer();
         ffmpeg.stdin.write(context.canvas.toBuffer());
         bar.tick(1);
     }
