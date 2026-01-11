@@ -19,7 +19,8 @@ program
     .option("-w, --width <pixels>", "Override the animation width")
     .option("-h, --height <pixels>", "Override the animation height")
     .option("-r, --framerate <fps>", "Override the animation framerate")
-    .option("-n, --frames <count>", "Override the length of animation in frames");
+    .option("-n, --frames <count>", "Override the length of animation in frames")
+    .option("-a, --audio <file>", "File to use for audio input");
 
 program.parse();
 
@@ -75,8 +76,14 @@ if (program.args[0] == "frame") {
     animation.render(context);
     fs.writeFileSync(`out/frame.png`, context.canvas.toBuffer());
 } else if (program.args[0] == "generate") {
-    fs.rmSync("out/output.mp4");
-    const ffmpeg = spawn("ffmpeg", ["-framerate", animOptions.framerate.toString(), "-f", "image2pipe", "-i", "-", "output.mp4"], {cwd: "./out", stdio: "pipe"});
+    fs.rmSync("out/output.mp4", {force: true});
+    const args = [];
+    args.push("-framerate", animOptions.framerate.toString(), "-f", "image2pipe", "-i", "-");
+    if (options.audio) {
+        args.push("-i", options.audio, "-c:a", "copy");
+    }
+    args.push("-shortest", "output.mp4");
+    const ffmpeg = spawn("ffmpeg", args, {cwd: "./out", stdio: "pipe"});
     const bar = new ProgressBar(ch.green("Generating [:bar] :current/:total :rate/s :percent :etas"), {
         complete: '=',
         incomplete: ' ',

@@ -15,6 +15,7 @@
   "type": "module",
   "main": "run/index.js",
   "scripts": {
+    "watch": "tsc --watch",
     "start": "node --enable-source-maps run/index.js"
   },
   "devDependencies": {
