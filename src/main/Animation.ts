@@ -6,10 +6,10 @@ export class Animation {
 
     name: string;
     defaultOptions: Options;
-    init: () => void;
+    init: (c: RenderContext) => void;
     render: (c: RenderContext) => void;
 
-    constructor(name: string, defaultOptions: Options, init: () => void, render: (c: RenderContext) => void) {
+    constructor(name: string, defaultOptions: Options, init: (c: RenderContext) => void, render: (c: RenderContext) => void) {
         this.name = name;
         this.defaultOptions = defaultOptions;
         this.init = init;
