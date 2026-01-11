@@ -73,7 +73,7 @@ if (program.args[0] == "frame") {
     console.log(ch.green("Generating single frame: " + options.frame));
     context.frame(parseInt(options.frame));
     animation.render(context);
-    fs.writeFileSync(`out/${parseInt(options.frame)}.png`, context.canvas.toBuffer());
+    fs.writeFileSync(`out/frame.png`, context.canvas.toBuffer());
 } else if (program.args[0] == "generate") {
     fs.rmSync("out/output.mp4");
     const ffmpeg = spawn("ffmpeg", ["-framerate", animOptions.framerate.toString(), "-f", "image2pipe", "-i", "-", "output.mp4"], {cwd: "./out", stdio: "pipe"});
