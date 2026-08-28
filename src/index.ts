@@ -53,7 +53,11 @@ if (isNaN(parseInt(options.frame))) {
     process.exit(1);
 }
 
-const animOptions = animation.defaultOptions;
+let animOptions = animation.defaultOptions;
+
+if (animation.preinit) {
+    animOptions = animation.preinit(animOptions);
+}
 
 if (options.width && isFinite(parseInt(options.width))) animOptions.width = parseInt(options.width);
 if (options.height && isFinite(parseInt(options.height))) animOptions.height = parseInt(options.height);
@@ -62,7 +66,9 @@ if (options.frames && isFinite(parseInt(options.frames))) animOptions.frames = p
 
 const context = new RenderContext(animOptions);
 
-animation.init(context);
+if (animation.init) {
+    animation.init(context);
+}
 
 console.log(ch.blueBright.bold(`Using animation '${animation.name}'`));
 console.log(`  ${animOptions.width}x${animOptions.height}, Frames: ${animOptions.frames}@${animOptions.framerate}fps, ${(animOptions.frames / animOptions.framerate).toFixed(2)}s`);
@@ -110,4 +116,8 @@ if (program.args[0] == "frame") {
         bar.tick(1);
     }
     ffmpeg.stdin.end();
+}
+
+if (animation.cleanup) {
+    animation.cleanup(context);
 }

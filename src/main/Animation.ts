@@ -6,14 +6,33 @@ export class Animation {
 
     name: string;
     defaultOptions: Options;
-    init: (c: RenderContext) => void;
+    preinit: ((o: Options) => Options) | null;
+    init: ((c: RenderContext) => void) | null;
     render: (c: RenderContext) => void;
+    cleanup: ((c: RenderContext) => void) | null;
 
-    constructor(name: string, defaultOptions: Options, init: (c: RenderContext) => void, render: (c: RenderContext) => void) {
+    constructor(name: string, defaultOptions: Options, render: (c: RenderContext) => void) {
         this.name = name;
         this.defaultOptions = defaultOptions;
-        this.init = init;
+        this.preinit = null;
+        this.init = null;
         this.render = render;
+        this.cleanup = null;
         Animation.animations.set(this.name, this);
+    }
+
+    hookPreinit(hook: (o: Options) => Options) {
+        this.preinit = hook;
+        return this;
+    }
+
+    hookInit(hook: (c: RenderContext) => void) {
+        this.init = hook;
+        return this;
+    }
+
+    hookCleanup(hook: (c: RenderContext) => void) {
+        this.cleanup = this.cleanup;
+        return this;
     }
 }
