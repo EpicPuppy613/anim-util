@@ -6,6 +6,39 @@ import { Argument, Command } from "commander";
 import { Animation } from "./main/Animation.js";
 import { RenderContext } from "./main/RenderContext.js";
 import { spawn } from "child_process";
+import { Readable } from "stream";
+
+class AnimationRenderer extends Readable {
+    animation: Animation;
+    context: RenderContext;
+
+    frame: number;
+    end: number;
+
+    bar: ProgressBar;
+
+    constructor (animation: Animation, context: RenderContext, frame: number, end: number, bar: ProgressBar) {
+        super();
+        this.animation = animation;
+        this.context = context;
+        this.frame = frame;
+        this.end = end;
+        this.bar = bar;
+    }
+
+    _read(size: number): void {
+        if (this.frame >= this.end) {
+            this.push(null);
+            return;
+        }
+
+        context.frame(this.frame);
+        this.animation.render(context);
+        this.push(context.canvas.toBuffer('raw'));
+        this.frame++;
+        this.bar.tick(1);
+    }
+}
 
 const program = new Command();
 
@@ -21,7 +54,8 @@ program
     .option("-r, --framerate <fps>", "Override the animation framerate")
     .option("-n, --frames <count>", "Override the length of animation in frames")
     .option("-a, --audio <file>", "File to use for audio input")
-    .option("--audio-offset <duration>", "Start position in audio file to start");
+    .option("--audio-offset <duration>", "Start position in audio file to start")
+    .option("--crf <crf>", "CRF to pass to the VP9 encoder");
 
 program.parse();
 
@@ -83,39 +117,35 @@ if (program.args[0] == "frame") {
     animation.render(context);
     fs.writeFileSync(`out/frame.png`, context.canvas.toBuffer());
 } else if (program.args[0] == "generate") {
-    fs.rmSync("out/output.mp4", {force: true});
     const args = [];
-    args.push("-framerate", animOptions.framerate.toString(), "-f", "image2pipe", "-i", "-");
+    let crf = 31;
+    if (options.crf && isFinite(parseInt(options.crf))) crf = parseInt(options.crf);
+    args.push("-framerate", animOptions.framerate.toString(), "-f", "rawvideo", "-pix_fmt", "bgra", "-s", animOptions.width + "x" + animOptions.height, "-i", "-");
     if (options.audio) {
         if (options.audioOffset) {
             args.push("-ss", options.audioOffset);
         }
         args.push("-i", options.audio, "-c:a", "copy");
     }
-    args.push("-shortest", "output.mp4");
-    const ffmpeg = spawn("ffmpeg", args, {cwd: "./out", stdio: "pipe"});
+    args.push("-y", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-crf", crf.toString(), "-v:b", "0", "output.webm");
+    const ffmpeg = spawn("ffmpeg", args, {cwd: "./out", stdio: ["pipe", "ignore", "ignore"]});
+
     const bar = new ProgressBar(ch.green("Generating [:bar] :current/:total :rate/s :percent :etas"), {
         complete: '=',
         incomplete: ' ',
         width: 20,
         total: animOptions.frames - parseInt(options.frame)
     });
+
+    const renderer = new AnimationRenderer(animation, context, parseInt(options.frame), animOptions.frames, bar);
+
     console.log = (d) => {
         bar.interrupt(d.toString());
     };
-    ffmpeg.stdout.on('data', (data) => {
-        bar.interrupt(data);
+
+    ffmpeg.on('spawn', () => {
+        renderer.pipe(ffmpeg.stdin);
     });
-    ffmpeg.stderr.on('data', (data) => {
-        bar.interrupt(data);
-    });
-    for (let i = parseInt(options.frame); i < animOptions.frames; i++) {
-        context.frame(i);
-        animation.render(context);
-        ffmpeg.stdin.write(context.canvas.toBuffer('image/png', {compressionLevel: 0}));
-        bar.tick(1);
-    }
-    ffmpeg.stdin.end();
 }
 
 if (animation.cleanup) {
