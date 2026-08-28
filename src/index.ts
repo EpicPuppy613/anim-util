@@ -94,16 +94,19 @@ if (program.args[0] == "frame") {
         width: 20,
         total: animOptions.frames - parseInt(options.frame)
     });
+    console.log = (d) => {
+        bar.interrupt(d.toString());
+    };
     ffmpeg.stdout.on('data', (data) => {
-        process.stdout.write(data);
+        bar.interrupt(data);
     });
     ffmpeg.stderr.on('data', (data) => {
-        process.stderr.write(data);
+        bar.interrupt(data);
     });
     for (let i = parseInt(options.frame); i < animOptions.frames; i++) {
         context.frame(i);
         animation.render(context);
-        ffmpeg.stdin.write(context.canvas.toBuffer());
+        ffmpeg.stdin.write(context.canvas.toBuffer('image/png', {compressionLevel: 0}));
         bar.tick(1);
     }
     ffmpeg.stdin.end();
