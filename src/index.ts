@@ -56,7 +56,7 @@ if (isNaN(parseInt(options.frame))) {
 let animOptions = animation.defaultOptions;
 
 if (animation.preinit) {
-    animOptions = animation.preinit(animOptions);
+    animOptions = await animation.preinit(animOptions);
 }
 
 if (options.width && isFinite(parseInt(options.width))) animOptions.width = parseInt(options.width);
@@ -67,7 +67,7 @@ if (options.frames && isFinite(parseInt(options.frames))) animOptions.frames = p
 const context = new RenderContext(animOptions);
 
 if (animation.init) {
-    animation.init(context);
+    await animation.init(context);
 }
 
 console.log(ch.blueBright.bold(`Using animation '${animation.name}'`));
@@ -119,5 +119,5 @@ if (program.args[0] == "frame") {
 }
 
 if (animation.cleanup) {
-    animation.cleanup(context);
+    await animation.cleanup(context);
 }

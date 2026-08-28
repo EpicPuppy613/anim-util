@@ -6,10 +6,10 @@ export class Animation {
 
     name: string;
     defaultOptions: Options;
-    preinit: ((o: Options) => Options) | null;
-    init: ((c: RenderContext) => void) | null;
+    preinit: ((o: Options) => Promise<Options>) | null;
+    init: ((c: RenderContext) => Promise<void>) | null;
     render: (c: RenderContext) => void;
-    cleanup: ((c: RenderContext) => void) | null;
+    cleanup: ((c: RenderContext) => Promise<void>) | null;
 
     constructor(name: string, defaultOptions: Options, render: (c: RenderContext) => void) {
         this.name = name;
@@ -21,17 +21,17 @@ export class Animation {
         Animation.animations.set(this.name, this);
     }
 
-    hookPreinit(hook: (o: Options) => Options) {
+    hookPreinit(hook: (o: Options) => Promise<Options>) {
         this.preinit = hook;
         return this;
     }
 
-    hookInit(hook: (c: RenderContext) => void) {
+    hookInit(hook: (c: RenderContext) => Promise<void>) {
         this.init = hook;
         return this;
     }
 
-    hookCleanup(hook: (c: RenderContext) => void) {
+    hookCleanup(hook: (c: RenderContext) => Promise<void>) {
         this.cleanup = this.cleanup;
         return this;
     }
