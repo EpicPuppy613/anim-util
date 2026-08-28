@@ -12,7 +12,7 @@ const program = new Command();
 program
     .name('anim-util')
     .description('Script based animation creation utility')
-    .version('0.1.0')
+    .version('0.2.0')
     .addArgument(new Argument("<operation>", "The operation to perform").choices(["frame", "generate"]))
     .addArgument(new Argument("<animation>", "The animation to generate"))
     .option("-f, --frame <number>", "The frame number to generate or start generating at, first frame = 0", "0")
